@@ -25,6 +25,8 @@ export interface Account {
   active: boolean;
   /** 督导权限：仅此类账号可进入运营总览（可看全部学员与营养师/教练批注情况） */
   supervisor?: boolean;
+  /** 内置管理员：唯一可编辑/删除/启用停用账号的角色（不可被停用或删除） */
+  admin?: boolean;
   createdAt: string;   // 创建时间 YYYY-MM-DD HH:mm:ss
 }
 
@@ -50,6 +52,8 @@ export interface User {
   medicalReports?: MedicalReport[];
   /** 督导权限标记（登录时由账户带入） */
   supervisor?: boolean;
+  /** 内置管理员标记（登录时由账户带入）：可管理全部账号 */
+  admin?: boolean;
 }
 
 /** 打卡记录上的单条批注（同一记录可有多名同角色人员分别批注，逐条展示不覆盖；作者带角色+姓名） */

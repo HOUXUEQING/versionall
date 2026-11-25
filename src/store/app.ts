@@ -545,7 +545,7 @@ export const useAppStore = defineStore('app', () => {
         user.value = data.user;
         // 权限以账户数据为准：授权/收回后刷新页面也能生效
         const acc = accounts.value.find((a) => a.id === data.user.id || a.phone === data.user.phone);
-        if (acc) user.value = { ...user.value, supervisor: acc.supervisor === true };
+        if (acc) user.value = { ...user.value, supervisor: acc.supervisor === true, admin: acc.admin === true };
         // 默认展示最新营期
         applyLatestCampDefault();
         // 恢复问卷状态（按学员隔离，防止串用他人问卷数据）
@@ -1066,7 +1066,11 @@ export const useAppStore = defineStore('app', () => {
     MOCK_ACCOUNTS.forEach((a) => {
       const hit = accounts.value.find((x) => x.phone === a.phone && x.role === a.role);
       if (!hit) accounts.value.push({ ...a });
-      else if (a.supervisor && !hit.supervisor) hit.supervisor = true;
+      else {
+        if (a.supervisor && !hit.supervisor) hit.supervisor = true;
+        // 内置管理员标记必须合并进来，否则旧快照里该账号会失去管理权限
+        if (a.admin && !hit.admin) { hit.admin = true; hit.active = true; }
+      }
     });
     // 记录：清掉未来/开营前脏数据；v3 起用线性体重历史替换体验学员第一期旧体重
     if (fromVersion < 4) {
@@ -1523,10 +1527,22 @@ export const useAppStore = defineStore('app', () => {
     api.createAccount(account).catch(() => {});
   }
   function updateAccount(id: string, updates: Partial<Account>) {
-    accounts.value = accounts.value.map((a) => (a.id === id ? { ...a, ...updates } : a));
-    api.updateAccount(id, updates).catch(() => {});
+    const target = accounts.value.find((a) => a.id === id);
+    let next = updates;
+    // 内置管理员：不允许停用、不允许改角色、不允许摘掉管理员标记
+    if (target?.admin) {
+      next = { ...updates };
+      delete next.active;
+      delete next.role;
+      delete next.admin;
+    }
+    accounts.value = accounts.value.map((a) => (a.id === id ? { ...a, ...next } : a));
+    api.updateAccount(id, next).catch(() => {});
   }
   function deleteAccount(id: string) {
+    const target = accounts.value.find((a) => a.id === id);
+    // 内置管理员账号不可删除，避免系统失去唯一可管理账号的人
+    if (target?.admin) return;
     accounts.value = accounts.value.filter((a) => a.id !== id);
     api.deleteAccount(id).catch(() => {});
   }

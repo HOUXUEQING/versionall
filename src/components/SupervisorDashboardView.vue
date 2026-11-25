@@ -269,7 +269,10 @@ const exportCsv = () => {
 
       <!-- 批注类型明细 -->
       <Card class="p-4">
-        <h3 class="text-sm font-bold text-gray-900 mb-2">批注类型明细</h3>
+        <h3 class="text-sm font-bold text-gray-900 mb-1">批注类型明细</h3>
+        <p class="text-[10px] text-gray-400 leading-relaxed mb-2">
+          统计规则：应批注 = 该类型在统计区间内的记录条数；已批注 = 其中已被对应角色处理的条数（含仅评分、未写批注）；待批注 = 应批注 − 已批注；批注率 = 已批注 ÷ 应批注，四舍五入取整。
+        </p>
         <div class="overflow-x-auto">
           <table class="w-full text-[11px] min-w-[340px]">
             <thead>
@@ -300,9 +303,12 @@ const exportCsv = () => {
 
       <!-- 人员批注量 -->
       <Card class="p-4">
-        <h3 class="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
+        <h3 class="text-sm font-bold text-gray-900 mb-1 flex items-center gap-2">
           <UserCheck class="w-4 h-4 text-[#1F4E79]" /> 人员批注量（按类型）
         </h3>
+        <p class="text-[10px] text-gray-400 leading-relaxed mb-2">
+          统计规则：仅统计启用状态的营养师/教练账号（不含督导）；每条记录只计一次工作量，归属当前批注人；平均响应 = 批注时间 − 记录时间，仅统计非负样本，保留 1 位小数。
+        </p>
         <div class="overflow-x-auto">
           <table class="w-full text-[11px] min-w-[520px] freeze-first">
             <thead>

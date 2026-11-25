@@ -77,7 +77,7 @@ const attendanceSummary = computed(() => {
     if (done > 0) checked++;
     if (done === 5) all++;
   }
-  return { total, checked, unchecked: total - checked, all, rate: total ? Math.round((checked / total) * 100) : 0 };
+  return { total, checked, unchecked: total - checked, all, partial: checked - all, rate: total ? Math.round((checked / total) * 100) : 0 };
 });
 
 const rankedStudents = computed(() => {
@@ -207,12 +207,12 @@ const maskPhone = (phone: string) => phone.replace(/(\d{3})\d{4}(\d{4})/, '$1***
         </div>
         <div class="grid grid-cols-4 gap-2 text-center">
           <div class="bg-white/70 rounded-xl py-2">
-            <div class="text-lg font-black text-gray-900">{{ attendanceSummary.checked }}</div>
-            <div class="text-[10px] text-gray-500">已打卡</div>
+            <div class="text-lg font-black text-gray-900">{{ attendanceSummary.partial }}</div>
+            <div class="text-[10px] text-gray-500">部分打卡</div>
           </div>
           <div class="bg-white/70 rounded-xl py-2">
             <div class="text-lg font-black text-[#FF976A]">{{ attendanceSummary.unchecked }}</div>
-            <div class="text-[10px] text-gray-500">未打卡</div>
+            <div class="text-[10px] text-gray-500">全部未打</div>
           </div>
           <div class="bg-white/70 rounded-xl py-2">
             <div class="text-lg font-black text-[#07C160]">{{ attendanceSummary.all }}</div>

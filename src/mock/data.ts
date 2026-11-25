@@ -804,6 +804,8 @@ export const MOCK_CAMPS: Camp[] = [
 
 /** 账户列表（手机号 = 登录凭证） */
 export const MOCK_ACCOUNTS: Account[] = [
+  // 内置管理员：唯一可编辑/删除/启用停用账号的角色（不可删除、不可停用）
+  { id: 'admin1', phone: '13466449149', name: '管理员', role: 'dietitian', active: true, admin: true, supervisor: true, createdAt: iso(-60, '09:00:00') },
   // 营养师（第一批数据库预维护，后续可在营养师端管理）
   { id: 'd0', phone: '18888888888', name: '管理员', role: 'dietitian', active: true, createdAt: iso(-30, '09:00:00') },
   { id: 'd1', phone: '13900000001', name: '王营养师', role: 'dietitian', active: true, createdAt: iso(-30, '09:00:00') },
@@ -1225,4 +1227,4 @@ export function hasCampMetricReview(campId?: string | null): boolean {
 export const DEMO_METRIC_CAMP1_STUDENT_IDS = DEMO_METRIC_CAMP1_IDS;
 
 /** 演示数据版本：用于本机旧快照的一次性增量合并（改动 mock 种子时 +1） */
-export const DEMO_SCHEMA_VERSION = 4;
+export const DEMO_SCHEMA_VERSION = 5;

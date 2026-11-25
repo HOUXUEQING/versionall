@@ -67,6 +67,7 @@ const handlePhoneSubmit = () => {
     gender: studentInfo?.gender,
     age: studentInfo?.age,
     supervisor: account.supervisor === true,
+    admin: account.admin === true,
   });
   const roleLabel = account.role === 'dietitian' ? '营养师' : account.role === 'coach' ? '教练' : '学员';
   showToast(`欢迎回来${account.name ? '，' + roleLabel + ' ' + account.name : '，' + roleLabel}`);

@@ -12,6 +12,9 @@ import type { Account, Camp, Role } from '../types';
 
 const store = useAppStore();
 
+// 内置管理员：唯一可编辑/删除/启用停用账号的角色；其他营养师仅可查看
+const isAdmin = computed(() => store.user?.admin === true);
+
 // ─── Tab 切换 ───
 const activeTab = ref<Role>('student');
 const tabs: { role: Role; label: string; icon: typeof Users; color: string }[] = [
@@ -256,6 +259,13 @@ const saveAccount = () => {
   showToast({ message: editingAccount.value.id ? '已保存' : '账号已创建', position: 'top', duration: 2000 });
 };
 
+// 切换角色：内置管理员账号不允许改角色
+const selectRole = (role: Role) => {
+  if (!editingAccount.value || editingAccount.value.admin === true) return;
+  editingAccount.value.role = role;
+  accountFormError.value = '';
+};
+
 // ─── 辅助 ───
 const maskPhone = (phone: string) => phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
 
@@ -288,6 +298,14 @@ const switchTab = (role: Role) => {
         <ShieldCheck class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
         <div class="text-xs text-blue-700 leading-relaxed">
           只有配置了手机号的账户才能登录系统。学员需关联营期，每期排名相互独立；同一人可参与多期。
+        </div>
+      </div>
+
+      <!-- 非管理员：只读提示 -->
+      <div v-if="!isAdmin" class="flex items-start gap-2 bg-orange-50 border border-orange-100 rounded-xl p-3">
+        <ShieldOff class="w-4 h-4 text-[#FF976A] shrink-0 mt-0.5" />
+        <div class="text-xs text-orange-700 leading-relaxed">
+          当前账号仅可查看账户信息。编辑、删除、启用/停用账户仅限内置管理员（13466449149）操作。
         </div>
       </div>
 
@@ -434,8 +452,9 @@ const switchTab = (role: Role) => {
                 </div>
               </div>
             </div>
-            <div class="flex gap-1.5 shrink-0 items-center">
+            <div v-if="isAdmin" class="flex gap-1.5 shrink-0 items-center">
               <button
+                v-if="!account.admin"
                 @click="toggleActive(account)"
                 :class="['p-1.5 rounded-lg transition-colors', account.active ? 'text-green-500 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-50']"
                 :title="account.active ? '点击禁用' : '点击启用'"
@@ -445,7 +464,7 @@ const switchTab = (role: Role) => {
               <button @click="handleEditAccount(account)" class="text-blue-500 p-1.5 hover:bg-blue-50 rounded-lg">
                 <Edit3 class="w-4 h-4" />
               </button>
-              <button @click="handleDeleteAccount(account)" class="text-red-500 p-1.5 hover:bg-red-50 rounded-lg">
+              <button v-if="!account.admin" @click="handleDeleteAccount(account)" class="text-red-500 p-1.5 hover:bg-red-50 rounded-lg">
                 <Trash2 class="w-4 h-4" />
               </button>
             </div>
@@ -460,8 +479,8 @@ const switchTab = (role: Role) => {
       </div>
     </div>
 
-    <!-- 底部新增按钮 -->
-    <div class="sticky bottom-0 p-4 bg-white border-t border-gray-100">
+    <!-- 底部新增按钮（仅内置管理员） -->
+    <div v-if="isAdmin" class="sticky bottom-0 p-4 bg-white border-t border-gray-100">
       <button
         class="w-full py-3 rounded-xl text-white font-bold flex items-center justify-center gap-1"
         :style="`background-color: ${tabs.find(t => t.role === activeTab)?.color}`"
@@ -554,19 +573,22 @@ const switchTab = (role: Role) => {
                 v-for="tab in tabs"
                 :key="tab.role"
                 type="button"
+                :disabled="editingAccount.admin === true"
                 :class="[
                   'flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 border',
                   editingAccount.role === tab.role
                     ? 'text-white border-transparent'
                     : 'bg-gray-50 text-gray-600 border-gray-200 active:bg-gray-100',
+                  editingAccount.admin === true ? 'opacity-60' : '',
                 ]"
                 :style="editingAccount.role === tab.role ? `background-color: ${tab.color}` : ''"
-                @click="editingAccount.role = tab.role; accountFormError = ''"
+                @click="selectRole(tab.role)"
               >
                 <component :is="tab.icon" class="w-4 h-4" />
                 {{ tab.label }}
               </button>
             </div>
+            <div v-if="editingAccount.admin === true" class="text-[10px] text-gray-400 mt-1.5">内置管理员账号不可修改角色</div>
           </div>
           <!-- 营期关联（学员/教练） -->
           <div v-if="editingAccount.role === 'student' || editingAccount.role === 'coach'">
@@ -606,7 +628,7 @@ const switchTab = (role: Role) => {
           <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
             <div>
               <div class="text-sm font-medium text-gray-700">启用状态</div>
-              <div class="text-[10px] text-gray-400 mt-0.5">禁用后该手机号将无法登录</div>
+              <div class="text-[10px] text-gray-400 mt-0.5">{{ editingAccount.admin === true ? '内置管理员账号不可停用' : '禁用后该手机号将无法登录' }}</div>
             </div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-bold" :class="editingAccount.active ? 'text-[#07C160]' : 'text-gray-400'">
@@ -614,6 +636,7 @@ const switchTab = (role: Role) => {
               </span>
               <VanSwitch
                 :model-value="editingAccount.active"
+                :disabled="editingAccount.admin === true"
                 @update:model-value="editingAccount.active = $event"
                 size="22px"
                 active-color="#07C160"
